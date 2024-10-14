@@ -11,10 +11,12 @@ type DmConnHelper struct {
 	roomId int64
 	// 弹幕链接底层结构
 	dmConn *DmConn
+	// 处理dmConn锁
+	connMu sync.Mutex
 	// 接收弹幕消息的channel
 	ruleChs []chan<- *danmu.Danmu
 	// 搬运弹幕消息锁，在更新channel时上写锁
-	mu sync.RWMutex
+	ruleMu sync.RWMutex
 	// 搬运启停状态
 	isEnabled bool
 	// 主动关闭状态
@@ -27,7 +29,7 @@ func NewDmConnHelper(roomId int64) *DmConnHelper {
 		roomId:    roomId,
 		dmConn:    NewDmConn(roomId),
 		ruleChs:   nil,
-		mu:        sync.RWMutex{},
+		ruleMu:    sync.RWMutex{},
 		isEnabled: true,
 		isClosed:  false,
 	}
@@ -36,17 +38,24 @@ func NewDmConnHelper(roomId int64) *DmConnHelper {
 }
 
 func (helper *DmConnHelper) Enable() error {
+	helper.connMu.Lock()
+	defer helper.connMu.Unlock()
 	if helper.isEnabled {
-
+		zap.S().Warnf("duplicate enable dmConnHelper of roomId: %d", helper.roomId)
+		return nil
 	}
+	helper.dmConn = NewDmConn(helper.roomId)
+	helper.isEnabled = true
+	return nil
 }
 
 func (helper *DmConnHelper) Disable() error {
+	helper.connMu.Lock()
+	defer helper.connMu.Unlock()
 	if !helper.isEnabled {
 		zap.S().Warnf("duplicate disable dmConnHelper of roomId: %d", helper.roomId)
 		return nil
 	}
-	zap.S().Warnf("disable dmConnHelper of roomId: %d", helper.roomId)
 	helper.isEnabled = false
 	err := helper.dmConn.Close()
 	helper.dmConn = nil
@@ -57,9 +66,9 @@ func (helper *DmConnHelper) Disable() error {
 }
 
 // 全量更新channel
-func (helper *DmConnHelper) Update(ruleChs []chan<- *danmu.Danmu) {
-	helper.mu.Lock()
-	defer helper.mu.Unlock()
+func (helper *DmConnHelper) UpdateRoomDanmuChannel(ruleChs []chan<- *danmu.Danmu) {
+	helper.ruleMu.Lock()
+	defer helper.ruleMu.Unlock()
 	helper.ruleChs = ruleChs
 }
 
@@ -73,18 +82,20 @@ func (helper *DmConnHelper) transport() {
 		if !helper.isEnabled {
 			continue
 		}
-		helper.mu.RLock()
+		helper.ruleMu.RLock()
 		dmList := helper.dmConn.Read()
-		for _, ch := range helper.ruleChs {
-			for _, dm := range dmList {
+		for _, dm := range dmList {
+			for _, ch := range helper.ruleChs {
 				ch <- dm
 			}
 		}
-		helper.mu.RUnlock()
+		helper.ruleMu.RUnlock()
 	}
 }
 
 func (helper *DmConnHelper) Close() error {
+	helper.connMu.Lock()
+	defer helper.connMu.Unlock()
 	zap.S().Warnf("start close dmConnHelper of room: %v", helper.roomId)
 	helper.isClosed = true
 	helper.isEnabled = false

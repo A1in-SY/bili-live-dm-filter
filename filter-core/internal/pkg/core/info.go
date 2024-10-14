@@ -61,7 +61,7 @@ type RoomInfo struct {
 
 func GetRoomInfo(roomId int64) (*RoomInfo, error) {
 	cli := &http.Client{
-		Timeout: 250 * time.Millisecond,
+		Timeout: time.Second,
 	}
 
 	req0, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/get_info?room_id=%v", roomId), nil)
