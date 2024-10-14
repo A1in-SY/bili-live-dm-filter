@@ -1,0 +1,18 @@
+[LogConf]
+Level = "debug"
+FileName = "filter-core.log"
+MaxSize = 200
+MaxAge = 0
+MaxBackups = 0
+IsStdout = true
+IsStackTrace = false
+
+[CoreConf]
+# 是否强制使用Auth信息连接长链。若为false，在连接失败时会尝试使用游客信息连接
+ForceAuth = true
+# 进行Auth的uid
+AuthUid = 0
+# 进行Auth的账号Cookie
+AuthCookie = ""
+# 长链心跳包间隔时间
+HeartbeatInterval = "30s"
