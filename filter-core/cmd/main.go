@@ -9,7 +9,7 @@ import (
 
 func main() {
 	logger.Logo()
-	conn := core.NewDmConn(22174141)
+	conn := core.NewDmConn(6)
 	for {
 		dmList := conn.Read()
 		for _, dm := range dmList {

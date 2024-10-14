@@ -23,7 +23,7 @@ type DmConn struct {
 	isConnected bool
 	// 认证状态
 	isAuth bool
-	// 主动关闭状态
+	// 主动关闭状态，为true后该对象不再可用，内部资源已回收
 	isClosed bool
 	// 心跳
 	hbTicker *time.Ticker
@@ -32,7 +32,7 @@ type DmConn struct {
 func NewDmConn(roomId int64) *DmConn {
 	conn := &DmConn{
 		info: &RoomInfo{
-			RoomId: roomId,
+			RoomShortId: roomId,
 		},
 		ws:          nil,
 		isConnected: false,
@@ -53,7 +53,7 @@ func (conn *DmConn) connect() error {
 		_ = conn.ws.Close()
 		conn.ws = nil
 	}
-	info, err := GetRoomInfo(conn.info.RoomId)
+	info, err := GetRoomInfo(conn.info.RoomShortId)
 	if err != nil {
 		return errwarp.Warp("get room danmu info fail", err)
 	}
@@ -93,7 +93,7 @@ func (conn *DmConn) connect() error {
 	}
 	conn.isAuth = true
 
-	zap.S().Infof("connect to bili live room: %v danmu with uid: %v success", info.RoomId, config.Conf.CoreConf.AuthUid)
+	zap.S().Infof("connect to bili live room: %v danmu with uid: %v success", info.RoomShortId, config.Conf.CoreConf.AuthUid)
 	return nil
 }
 
@@ -170,19 +170,21 @@ func (conn *DmConn) heartbeat() error {
 		if err != nil {
 			return errwarp.Warp("send heartbeat message fail", err)
 		}
-		zap.S().Debugf("roomId: %v send heartbeat success", conn.info.RoomId)
+		zap.S().Debugf("roomId: %v send heartbeat success", conn.info.RoomShortId)
 		return nil
 	}
 	return nil
 }
 
 func (conn *DmConn) Close() error {
+	zap.S().Warnf("start close dmConn of room: %v", conn.info.RoomShortId)
 	conn.isClosed = true
 	conn.isConnected = false
 	conn.isAuth = false
 	conn.hbTicker.Stop()
 	conn.hbTicker = nil
 	err := conn.ws.Close()
+	conn.ws = nil
 	if err != nil {
 		return errwarp.Warp("close danmu conn fail", err)
 	}

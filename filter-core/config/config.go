@@ -26,7 +26,6 @@ func init() {
 			AuthCookie:        "",
 			HeartbeatInterval: 30 * time.Second,
 		},
-		DanmuConf: &DanmuConfig{},
 	}
 	var confPath string
 	flag.StringVar(&confPath, "conf", "../config.toml", "config path, eg: -conf /path/to/your/config.toml")
@@ -46,9 +45,8 @@ func init() {
 }
 
 type Config struct {
-	LogConf   *LogConfig
-	CoreConf  *CoreConfig
-	DanmuConf *DanmuConfig
+	LogConf  *LogConfig
+	CoreConf *CoreConfig
 }
 
 type LogConfig struct {
@@ -67,7 +65,4 @@ type CoreConfig struct {
 	AuthUid           int64
 	AuthCookie        string
 	HeartbeatInterval time.Duration
-}
-
-type DanmuConfig struct {
 }
