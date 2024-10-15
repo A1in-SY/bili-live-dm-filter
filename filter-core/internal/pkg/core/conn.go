@@ -128,6 +128,7 @@ func (conn *DmConn) selfHealing() {
 	}
 	// 修好后立刻发条心跳，再按指定间隔发
 	_ = conn.heartbeat()
+	// 极端情况下这个调用会panic，但属于非正常使用，不改了
 	conn.hbTicker.Reset(config.Conf.CoreConf.HeartbeatInterval)
 }
 
@@ -192,10 +193,13 @@ func (conn *DmConn) Close() error {
 	conn.isAuth = false
 	// 让这个conn的 keepHeartbeat goroutine 尽快退出
 	conn.hbTicker.Reset(time.Millisecond)
-	err := conn.ws.Close()
-	conn.ws = nil
-	if err != nil {
-		return errwarp.Warp("close danmu conn fail", err)
+	// helper调用Enable后立即Disable有可能panic
+	if conn.ws != nil {
+		err := conn.ws.Close()
+		conn.ws = nil
+		if err != nil {
+			return errwarp.Warp("close danmu conn fail", err)
+		}
 	}
 	return nil
 }
