@@ -4,6 +4,7 @@ import (
 	"filter-core/util/errwarp"
 	"go.uber.org/zap"
 	"sync"
+	"time"
 )
 
 type DmConnHelper struct {
@@ -79,6 +80,7 @@ func (helper *DmConnHelper) transport() {
 			return
 		}
 		if !helper.isEnabled {
+			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 		helper.ruleMu.RLock()
