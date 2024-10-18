@@ -1,7 +1,7 @@
 package danmu
 
 type Danmu struct {
-	Cmd  DanmuCmd
+	Type DanmuType
 	Data DanmuData
 }
 

@@ -95,7 +95,7 @@ func decodeCommandDanmuData(data []byte) (*Danmu, error) {
 		return nil, errwarp.Warp("unmarshal danmu type fail", err)
 	}
 	switch t.Cmd {
-	case DanmuCmdDANMUMSG:
+	case DANMUMSG:
 		dmMsgInfo, ok := t.Info.([]interface{})
 		if !ok {
 			return nil, errwarp.Warp("not []interface{}", nil)
@@ -105,7 +105,7 @@ func decodeCommandDanmuData(data []byte) (*Danmu, error) {
 			return nil, errwarp.Warp("not string", nil)
 		}
 		dm := &Danmu{
-			Cmd: DanmuCmdDANMUMSG,
+			Type: DanmuTypeDANMUMSG,
 			Data: &DanmuMsgData{
 				Content:   content,
 				SenderUid: 0,

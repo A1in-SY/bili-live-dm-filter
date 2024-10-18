@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-type baseMatch interface {
+type baseMatcher interface {
 	isBaseMatch(a interface{}) bool
 }
 
-type stringMatch struct {
+type stringMatcher struct {
 	value string
 	mode  stringMatchMode
 }
@@ -17,12 +17,12 @@ type stringMatch struct {
 type stringMatchMode int64
 
 const (
-	stringMatchModeEqual stringMatchMode = iota
-	stringMatchModeContain
-	stringMatchModeRegex
+	stringMatchModeEqual   stringMatchMode = 1
+	stringMatchModeContain stringMatchMode = 2
+	stringMatchModeRegex   stringMatchMode = 3
 )
 
-func (m *stringMatch) isBaseMatch(a interface{}) bool {
+func (m *stringMatcher) isBaseMatch(a interface{}) bool {
 	target, ok := a.(string)
 	if !ok {
 		return false
@@ -40,7 +40,7 @@ func (m *stringMatch) isBaseMatch(a interface{}) bool {
 	}
 }
 
-type int64Match struct {
+type int64Matcher struct {
 	value int64
 	mode  int64MatchMode
 }
@@ -48,15 +48,15 @@ type int64Match struct {
 type int64MatchMode int64
 
 const (
-	int64MatchModeEqual int64MatchMode = iota
-	int64MatchModeNotEqual
-	int64MatchModeGreater
-	int64MatchModeLess
-	int64MatchModeGreaterOrEqual
-	int64MatchModeLessOrEqual
+	int64MatchModeEqual          int64MatchMode = 1
+	int64MatchModeNotEqual       int64MatchMode = 2
+	int64MatchModeGreater        int64MatchMode = 3
+	int64MatchModeLess           int64MatchMode = 4
+	int64MatchModeGreaterOrEqual int64MatchMode = 5
+	int64MatchModeLessOrEqual    int64MatchMode = 6
 )
 
-func (m *int64Match) isBaseMatch(a interface{}) bool {
+func (m *int64Matcher) isBaseMatch(a interface{}) bool {
 	target, ok := a.(int64)
 	if !ok {
 		return false

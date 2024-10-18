@@ -70,14 +70,27 @@ func NewAuthReq(uid, roomId int64, key string) *AuthReq {
 }
 
 type cmdType struct {
-	Cmd  DanmuCmd    `json:"cmd"`
+	Cmd  string      `json:"cmd"`
 	Data interface{} `json:"data"`
 	Info interface{} `json:"info"`
 }
 
-type DanmuCmd string
-
 const (
 	// 普通弹幕，好像表情包弹幕也在里面
-	DanmuCmdDANMUMSG DanmuCmd = "DANMU_MSG"
+	DANMUMSG string = "DANMU_MSG"
+)
+
+type DanmuType int64
+
+const (
+	DanmuTypeDANMUMSG DanmuType = 1
+)
+
+var (
+	DanmuType2Cmd = map[DanmuType]string{
+		DanmuTypeDANMUMSG: DANMUMSG,
+	}
+	DanmuType2Name = map[DanmuType]string{
+		DanmuTypeDANMUMSG: "普通弹幕",
+	}
 )
