@@ -1,28 +1,33 @@
-package rules
+package matcher
 
 import (
 	"go.uber.org/zap"
 	"strings"
 )
 
-type baseMatcher interface {
-	isBaseMatch(a interface{}) bool
-}
+type BaseMatcherType int64
+type BaseMatchMode int64
+
+const (
+	BaseMatcherTypeString = 1
+	BaseMatcherTypeInt64  = 2
+)
 
 type stringMatcher struct {
 	value string
-	mode  stringMatchMode
+	mode  BaseMatchMode
 }
 
-type stringMatchMode int64
-
 const (
-	stringMatchModeEqual   stringMatchMode = 1
-	stringMatchModeContain stringMatchMode = 2
-	stringMatchModeRegex   stringMatchMode = 3
+	stringMatchModeEqual   BaseMatchMode = 1
+	stringMatchModeContain BaseMatchMode = 2
+	stringMatchModeRegex   BaseMatchMode = 3
 )
 
 func (m *stringMatcher) isBaseMatch(a interface{}) bool {
+	if m == nil {
+		return true
+	}
 	target, ok := a.(string)
 	if !ok {
 		return false
@@ -42,21 +47,22 @@ func (m *stringMatcher) isBaseMatch(a interface{}) bool {
 
 type int64Matcher struct {
 	value int64
-	mode  int64MatchMode
+	mode  BaseMatchMode
 }
 
-type int64MatchMode int64
-
 const (
-	int64MatchModeEqual          int64MatchMode = 1
-	int64MatchModeNotEqual       int64MatchMode = 2
-	int64MatchModeGreater        int64MatchMode = 3
-	int64MatchModeLess           int64MatchMode = 4
-	int64MatchModeGreaterOrEqual int64MatchMode = 5
-	int64MatchModeLessOrEqual    int64MatchMode = 6
+	int64MatchModeEqual          BaseMatchMode = 1
+	int64MatchModeNotEqual       BaseMatchMode = 2
+	int64MatchModeGreater        BaseMatchMode = 3
+	int64MatchModeLess           BaseMatchMode = 4
+	int64MatchModeGreaterOrEqual BaseMatchMode = 5
+	int64MatchModeLessOrEqual    BaseMatchMode = 6
 )
 
 func (m *int64Matcher) isBaseMatch(a interface{}) bool {
+	if m == nil {
+		return true
+	}
 	target, ok := a.(int64)
 	if !ok {
 		return false
