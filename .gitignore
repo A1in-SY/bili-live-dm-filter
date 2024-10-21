@@ -28,3 +28,4 @@ Thumbs.db
 .test
 filter-core/tconfig.toml
 trule.toml
+filter-core/api.sh

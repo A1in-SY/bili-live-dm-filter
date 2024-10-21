@@ -1,6 +1,7 @@
-package core
+package conn
 
 import (
+	"filter-core/internal/model/danmu"
 	"filter-core/util/errwarp"
 	"go.uber.org/zap"
 	"sync"
@@ -14,7 +15,7 @@ type DmConnHelper struct {
 	// 处理dmConn锁
 	connMu sync.Mutex
 	// 接收弹幕消息的channel
-	ruleChs []DmChannel
+	ruleChs []danmu.DanmuChannel
 	// 搬运弹幕消息锁，在更新channel时上写锁
 	ruleMu sync.RWMutex
 	// 搬运启停状态
@@ -66,7 +67,7 @@ func (helper *DmConnHelper) Disable() error {
 }
 
 // 全量更新channel
-func (helper *DmConnHelper) UpdateRoomDanmuChannel(ruleChs []DmChannel) {
+func (helper *DmConnHelper) UpdateRoomDanmuChannel(ruleChs []danmu.DanmuChannel) {
 	helper.ruleMu.Lock()
 	defer helper.ruleMu.Unlock()
 	helper.ruleChs = ruleChs

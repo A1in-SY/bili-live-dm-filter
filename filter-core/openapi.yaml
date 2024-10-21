@@ -1,0 +1,126 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: Core API
+    version: 0.0.1
+paths:
+    /api/v1/core/get_config:
+        get:
+            tags:
+                - Core
+            operationId: Core_GetConfig
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetConfigResp'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/core/set_config:
+        post:
+            tags:
+                - Core
+            operationId: Core_SetConfig
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SetConfigReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SetConfigResp'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+components:
+    schemas:
+        Config:
+            type: object
+            properties:
+                log_conf:
+                    $ref: '#/components/schemas/Config_LogConfig'
+                conn_conf:
+                    $ref: '#/components/schemas/Config_ConnConfig'
+        Config_ConnConfig:
+            type: object
+            properties:
+                force_auth:
+                    type: boolean
+                auth_uid:
+                    type: string
+                auth_cookie:
+                    type: string
+                heartbeat_interval:
+                    type: string
+        Config_LogConfig:
+            type: object
+            properties:
+                level:
+                    type: string
+                file_name:
+                    type: string
+                max_size:
+                    type: string
+                max_age:
+                    type: string
+                max_backups:
+                    type: string
+                is_std_out:
+                    type: boolean
+                is_stack_trace:
+                    type: boolean
+        GetConfigResp:
+            type: object
+            properties:
+                conf:
+                    $ref: '#/components/schemas/Config'
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        SetConfigReq:
+            type: object
+            properties:
+                conf:
+                    $ref: '#/components/schemas/Config'
+        SetConfigResp:
+            type: object
+            properties: {}
+        Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+tags:
+    - name: Core

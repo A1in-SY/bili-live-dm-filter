@@ -1,0 +1,51 @@
+syntax = "proto3";
+package v1;
+option go_package = "filter-core/api/v1";
+
+import "google/api/annotations.proto";
+
+service Core {
+    rpc GetConfig(GetConfigReq) returns (GetConfigResp) {
+        option (google.api.http) = {
+            get: "/api/v1/core/get_config",
+        };
+    }
+    rpc SetConfig(SetConfigReq) returns (SetConfigResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/set_config",
+            body: "*",
+        };
+    }
+}
+
+message GetConfigReq {}
+
+message GetConfigResp {
+    Config conf = 1 [json_name = "conf"];
+}
+
+message Config {
+    LogConfig log_conf = 1 [json_name = "log_conf"];
+    ConnConfig conn_conf = 2 [json_name = "conn_conf"];
+    message LogConfig {
+        string level = 1 [json_name = "level"];
+        string file_name = 2 [json_name = "file_name"];
+        int64 max_size = 3 [json_name = "max_size"];
+        int64 max_age = 4 [json_name = "max_age"];
+        int64 max_backups = 5 [json_name = "max_backups"];
+        bool is_std_out = 6 [json_name = "is_std_out"];
+        bool is_stack_trace = 7 [json_name = "is_stack_trace"];
+    }
+    message ConnConfig {
+        bool force_auth = 1 [json_name = "force_auth"];
+        int64 auth_uid = 2 [json_name = "auth_uid"];
+        string auth_cookie = 3 [json_name = "auth_cookie"];
+        int64 heartbeat_interval = 4 [json_name = "heartbeat_interval"];
+    }
+}
+
+message SetConfigReq {
+    Config conf = 1 [json_name = "conf"];
+}
+
+message SetConfigResp {}

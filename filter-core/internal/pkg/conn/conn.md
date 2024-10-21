@@ -1,6 +1,6 @@
-# core包
+# conn包
 
-core包负责与B站直播弹幕服务建立并维护长链，主要功能代码位于 conn.go 、 conn_helper.go 和 conn_manager.go 中
+conn包负责与B站直播弹幕服务建立并维护长链，主要功能代码位于 conn.go 、 conn_helper.go 和 conn_manager.go 中
 对于每个“弹幕链接”，同时满足以下内容：
  - 对应一个直播间
  - 对应一个启停状态

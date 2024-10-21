@@ -1,12 +1,18 @@
 package matcher
 
-import "filter-core/internal/pkg/danmu"
+import (
+	danmu2 "filter-core/internal/model/danmu"
+)
 
-type RuleParam struct {
+type MatcherParams struct {
+	List []*MatcherParamItem
+}
+
+type MatcherParamItem struct {
 	Param string
 	Type  BaseMatcherType
 	Mode  BaseMatchMode
-	Value string
+	Value interface{}
 }
 
 type MatcherInfo struct {
@@ -20,6 +26,14 @@ type baseMatcher interface {
 }
 
 type DanmuMatcher interface {
-	//GetMatcherInfo() *MatcherInfo
-	IsDanmuMatch(dm *danmu.Danmu) bool
+	IsDanmuMatch(dm *danmu2.Danmu) bool
+}
+
+func NewDanmuMatcher(t danmu2.DanmuType, params *MatcherParams) DanmuMatcher {
+	switch t {
+	case danmu2.DanmuTypeDANMUMSG:
+		return newDanmuMsgMatcher(params.List)
+	default:
+		return nil
+	}
 }

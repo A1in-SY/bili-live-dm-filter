@@ -1,4 +1,4 @@
-package core
+package conn
 
 import (
 	"encoding/json"
@@ -83,7 +83,7 @@ func GetRoomInfo(roomId int64) (*RoomInfo, error) {
 	}
 
 	req1, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=%v", getInfo.Data.RoomId), nil)
-	req1.Header.Set("Cookie", config.Conf.CoreConf.AuthCookie)
+	req1.Header.Set("Cookie", config.Conf.ConnConf.AuthCookie)
 	resp1, err := cli.Do(req1)
 	if err != nil {
 		return nil, errwarp.Warp("get danmu info fail", err)

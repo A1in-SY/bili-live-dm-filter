@@ -1,6 +1,7 @@
-package core
+package conn
 
 import (
+	"filter-core/internal/model/danmu"
 	"filter-core/util/errwarp"
 	"fmt"
 	"go.uber.org/zap"
@@ -65,7 +66,7 @@ func (mng *DmConnManager) DelRoomDanmu(roomId int64) error {
 	return nil
 }
 
-func (mng *DmConnManager) UpdateRoomDanmuChannel(roomId int64, ruleChs []DmChannel) error {
+func (mng *DmConnManager) UpdateRoomDanmuChannel(roomId int64, ruleChs []danmu.DanmuChannel) error {
 	mng.mu.Lock()
 	defer mng.mu.Unlock()
 	//zap.S().Warnf("start update dmConnHelper channel of roomId: %d", roomId)

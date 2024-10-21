@@ -14,6 +14,16 @@ type qqPrivateAction struct {
 	userId int64
 }
 
+func newQQPrivateAction(extraInfo map[string]interface{}) *qqPrivateAction {
+	url := extraInfo["url"].(string)
+	userId := extraInfo["user_id"].(int)
+	return &qqPrivateAction{
+		cli:    http.DefaultClient,
+		url:    url,
+		userId: int64(userId),
+	}
+}
+
 func (a *qqPrivateAction) DoAction(abstract string) error {
 	m1 := map[string]interface{}{
 		"user_id": a.userId,

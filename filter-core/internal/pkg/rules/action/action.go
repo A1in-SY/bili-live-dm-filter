@@ -13,5 +13,15 @@ const (
 )
 
 type ActionParam struct {
-	Type RuleActionType
+	Type  RuleActionType
+	Extra map[string]interface{}
+}
+
+func NewRuleAction(param *ActionParam) RuleAction {
+	switch param.Type {
+	case RuleActionTypeQQPrivate:
+		return newQQPrivateAction(param.Extra)
+	default:
+		return nil
+	}
 }

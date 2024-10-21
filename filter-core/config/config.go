@@ -13,14 +13,14 @@ func init() {
 	Conf = &Config{
 		LogConf: &LogConfig{
 			Level:        "debug",
-			FileName:     "filter-core.log",
+			FileName:     "filter-conn.log",
 			MaxSize:      200,
 			MaxAge:       0,
 			MaxBackups:   0,
 			IsStdout:     true,
 			IsStackTrace: false,
 		},
-		CoreConf: &CoreConfig{
+		ConnConf: &ConnConfig{
 			ForceAuth:         true,
 			AuthUid:           0,
 			AuthCookie:        "",
@@ -46,7 +46,7 @@ func init() {
 
 type Config struct {
 	LogConf  *LogConfig
-	CoreConf *CoreConfig
+	ConnConf *ConnConfig
 }
 
 type LogConfig struct {
@@ -60,7 +60,7 @@ type LogConfig struct {
 	IsStackTrace bool
 }
 
-type CoreConfig struct {
+type ConnConfig struct {
 	ForceAuth         bool
 	AuthUid           int64
 	AuthCookie        string

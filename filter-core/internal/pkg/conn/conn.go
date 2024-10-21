@@ -1,10 +1,10 @@
-package core
+package conn
 
 import (
 	"encoding/json"
 	"errors"
 	"filter-core/config"
-	"filter-core/internal/pkg/danmu"
+	danmu2 "filter-core/internal/model/danmu"
 	"filter-core/util/errwarp"
 	"fmt"
 	"sync"
@@ -72,9 +72,9 @@ func (conn *DmConn) connect() error {
 	conn.isConnected = true
 
 	// auth
-	authReqBody := danmu.NewAuthReq(config.Conf.CoreConf.AuthUid, conn.info.RoomId, conn.info.Token)
-	header := danmu.NewDanmuHeader(danmu.ProtoVerAuthAndHeartBeat, danmu.OpCodeAuth)
-	danmuData0, err := danmu.EncodeDanmu(header, authReqBody)
+	authReqBody := danmu2.NewAuthReq(config.Conf.ConnConf.AuthUid, conn.info.RoomId, conn.info.Token)
+	header := danmu2.NewDanmuHeader(danmu2.ProtoVerAuthAndHeartBeat, danmu2.OpCodeAuth)
+	danmuData0, err := danmu2.EncodeDanmu(header, authReqBody)
 	if err != nil {
 		return errwarp.Warp("encode danmu data fail", err)
 	}
@@ -88,17 +88,17 @@ func (conn *DmConn) connect() error {
 		return errwarp.Warp("ws read auth danmu resp fail", err)
 	}
 	authRespData := danmuData1[16:]
-	authRespBody := &danmu.AuthResp{}
+	authRespBody := &danmu2.AuthResp{}
 	err = json.Unmarshal(authRespData, authRespBody)
 	if err != nil {
 		return errwarp.Warp("unmarshal auth resp body fail", err)
 	}
-	if authRespBody.Code != danmu.AuthResultCodeSuccess {
+	if authRespBody.Code != danmu2.AuthResultCodeSuccess {
 		return errors.New("auth to bili danmu server fail")
 	}
 	conn.isAuth = true
 
-	//zap.S().Infof("connect to bili live room: %v danmu with uid: %v success", info.RoomShortId, config.Conf.CoreConf.AuthUid)
+	//zap.S().Infof("connect to bili live room: %v danmu with uid: %v success", info.RoomShortId, config.Conf.ConnConf.AuthUid)
 	return nil
 }
 
@@ -113,13 +113,13 @@ func (conn *DmConn) selfHealing() {
 		err := conn.connect()
 		if err != nil {
 			zap.S().Errorf("dmConn connect error: %v", err)
-			if !config.Conf.CoreConf.ForceAuth {
+			if !config.Conf.ConnConf.ForceAuth {
 				zap.S().Warn("connect to bili live room danmu fail, will reset auth setting and retry")
-				if config.Conf.CoreConf.AuthUid != 0 {
-					config.Conf.CoreConf.AuthUid = 0
+				if config.Conf.ConnConf.AuthUid != 0 {
+					config.Conf.ConnConf.AuthUid = 0
 				}
-				if config.Conf.CoreConf.AuthCookie != "" {
-					config.Conf.CoreConf.AuthCookie = ""
+				if config.Conf.ConnConf.AuthCookie != "" {
+					config.Conf.ConnConf.AuthCookie = ""
 				}
 			}
 			continue
@@ -129,7 +129,7 @@ func (conn *DmConn) selfHealing() {
 	// 修好后立刻发条心跳，再按指定间隔发
 	_ = conn.heartbeat()
 	// 极端情况下这个调用会panic，但属于非正常使用，不改了
-	conn.hbTicker.Reset(config.Conf.CoreConf.HeartbeatInterval)
+	conn.hbTicker.Reset(config.Conf.ConnConf.HeartbeatInterval)
 }
 
 func (conn *DmConn) keepHeartbeat() {
@@ -152,7 +152,7 @@ func (conn *DmConn) keepHeartbeat() {
 }
 
 // 对一个直播间长链的读是串行的
-func (conn *DmConn) Read() []*danmu.Danmu {
+func (conn *DmConn) Read() []*danmu2.Danmu {
 	if conn.isConnected && conn.isAuth {
 		_, data, err := conn.ws.ReadMessage()
 		if err != nil {
@@ -162,15 +162,15 @@ func (conn *DmConn) Read() []*danmu.Danmu {
 			//zap.S().Errorf("read message error: %v, start self healing", err)
 			return nil
 		}
-		return danmu.DecodeDanmu(data)
+		return danmu2.DecodeDanmu(data)
 	}
 	return nil
 }
 
 func (conn *DmConn) heartbeat() error {
 	if conn.isConnected && conn.isAuth {
-		header := danmu.NewDanmuHeader(danmu.ProtoVerAuthAndHeartBeat, danmu.OpCodeHeartBeat)
-		danmuData, err := danmu.EncodeDanmu(header, nil)
+		header := danmu2.NewDanmuHeader(danmu2.ProtoVerAuthAndHeartBeat, danmu2.OpCodeHeartBeat)
+		danmuData, err := danmu2.EncodeDanmu(header, nil)
 		if err != nil {
 			return errwarp.Warp("encode danmu data fail", err)
 		}
