@@ -5,7 +5,19 @@ import (
 )
 
 type RuleDanmuChannel struct {
-	ch chan *danmu.Danmu
+	available bool
+	ch        chan *danmu.Danmu
+}
+
+func NewRuleDanmuChannel() *RuleDanmuChannel {
+	return &RuleDanmuChannel{
+		available: true,
+		ch:        make(chan *danmu.Danmu, 1024),
+	}
+}
+
+func (c *RuleDanmuChannel) IsAvailable() bool {
+	return c.available
 }
 
 func (c *RuleDanmuChannel) Send(dm *danmu.Danmu) {

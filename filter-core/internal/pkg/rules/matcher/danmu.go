@@ -5,24 +5,27 @@ import (
 )
 
 type danmuMsgMatcher struct {
-	Content   *stringMatcher
-	SenderUid *int64Matcher
+	Content   []*stringMatcher
+	SenderUid []*int64Matcher
 }
 
 func newDanmuMsgMatcher(params []*MatcherParamItem) *danmuMsgMatcher {
-	matcher := &danmuMsgMatcher{}
+	matcher := &danmuMsgMatcher{
+		Content:   make([]*stringMatcher, 0),
+		SenderUid: make([]*int64Matcher, 0),
+	}
 	for _, param := range params {
 		switch param.Param {
 		case "content":
-			matcher.Content = &stringMatcher{
+			matcher.Content = append(matcher.Content, &stringMatcher{
 				value: param.Value.(string),
-				mode:  BaseMatchMode(param.Mode),
-			}
+				mode:  param.Mode,
+			})
 		case "sender_uid":
-			matcher.SenderUid = &int64Matcher{
+			matcher.SenderUid = append(matcher.SenderUid, &int64Matcher{
 				value: param.Value.(int64),
-				mode:  BaseMatchMode(param.Mode),
-			}
+				mode:  param.Mode,
+			})
 		}
 	}
 	return matcher
@@ -30,5 +33,18 @@ func newDanmuMsgMatcher(params []*MatcherParamItem) *danmuMsgMatcher {
 
 func (d *danmuMsgMatcher) IsDanmuMatch(dm *danmu.Danmu) bool {
 	data := dm.Data.(*danmu.DanmuMsgData)
-	return d.Content.isBaseMatch(data.Content) && d.SenderUid.isBaseMatch(data.SenderUid)
+	isMatch := true
+	for _, matcher := range d.Content {
+		if !matcher.isBaseMatch(data.Content) {
+			isMatch = false
+			break
+		}
+	}
+	for _, matcher := range d.SenderUid {
+		if !matcher.isBaseMatch(data.SenderUid) {
+			isMatch = false
+			break
+		}
+	}
+	return isMatch
 }

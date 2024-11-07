@@ -88,7 +88,9 @@ func (helper *DmConnHelper) transport() {
 		dmList := helper.dmConn.Read()
 		for _, dm := range dmList {
 			for _, ch := range helper.ruleChs {
-				ch.Send(dm)
+				if ch.IsAvailable() {
+					ch.Send(dm)
+				}
 			}
 		}
 		helper.ruleMu.RUnlock()

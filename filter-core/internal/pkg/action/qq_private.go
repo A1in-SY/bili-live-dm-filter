@@ -24,10 +24,10 @@ func newQQPrivateAction(extraInfo map[string]interface{}) *qqPrivateAction {
 	}
 }
 
-func (a *qqPrivateAction) DoAction(abstract string) error {
+func (a *qqPrivateAction) DoAction(content string) error {
 	m1 := map[string]interface{}{
 		"user_id": a.userId,
-		"message": abstract,
+		"message": content,
 	}
 	data, _ := json.Marshal(m1)
 	req, _ := http.NewRequest(http.MethodPost, a.url, bytes.NewReader(data))

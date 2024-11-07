@@ -1,7 +1,7 @@
 package action
 
 type RuleAction interface {
-	DoAction(abstract string) error
+	DoAction(content string) error
 }
 
 type RuleActionType int64

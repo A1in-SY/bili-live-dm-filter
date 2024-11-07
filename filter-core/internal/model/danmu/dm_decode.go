@@ -98,17 +98,27 @@ func decodeCommandDanmuData(data []byte) (*Danmu, error) {
 	case DANMUMSG:
 		dmMsgInfo, ok := t.Info.([]interface{})
 		if !ok {
-			return nil, errwarp.Warp("not []interface{}", nil)
+			return nil, errwarp.Warp("decode DANMU_MSG fail", nil)
 		}
+
 		content, ok := dmMsgInfo[1].(string)
 		if !ok {
-			return nil, errwarp.Warp("not string", nil)
+			return nil, errwarp.Warp("decode DANMU_MSG fail", nil)
+		}
+		uid, ok := dmMsgInfo[2].([]interface{})[0].(float64)
+		if !ok {
+			return nil, errwarp.Warp("decode DANMU_MSG fail", nil)
+		}
+		name, ok := dmMsgInfo[2].([]interface{})[1].(string)
+		if !ok {
+			return nil, errwarp.Warp("decode DANMU_MSG fail", nil)
 		}
 		dm := &Danmu{
 			Type: DanmuTypeDANMUMSG,
 			Data: &DanmuMsgData{
-				Content:   content,
-				SenderUid: 0,
+				Content:    content,
+				SenderUid:  int64(uid),
+				SenderName: name,
 			},
 		}
 		return dm, nil

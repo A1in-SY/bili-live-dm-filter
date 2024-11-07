@@ -10,8 +10,9 @@ type DanmuData interface {
 }
 
 type DanmuMsgData struct {
-	Content   string
-	SenderUid int64
+	Content    string
+	SenderUid  int64
+	SenderName string
 }
 
 func (d *DanmuMsgData) isDanmuData() {}

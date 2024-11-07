@@ -10,8 +10,10 @@ type MatcherParams struct {
 
 type MatcherParamItem struct {
 	Param string
-	Type  BaseMatcherType
-	Mode  BaseMatchMode
+	// 标识value类型，由MatcherInfo给出后透传返回
+	Type BaseMatcherType
+	Mode BaseMatchMode
+	// service层为string，在pkg层根据type解析
 	Value interface{}
 }
 
