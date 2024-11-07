@@ -1,4 +1,4 @@
-package rules
+package rule
 
 import (
 	"filter-core/internal/model/danmu"

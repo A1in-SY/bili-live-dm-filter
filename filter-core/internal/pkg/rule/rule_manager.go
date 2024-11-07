@@ -1,8 +1,8 @@
-package rules
+package rule
 
 import (
 	"filter-core/internal/pkg/action"
-	"filter-core/internal/pkg/rules/matcher"
+	"filter-core/internal/pkg/rule/matcher"
 	"fmt"
 	"sync"
 	"time"

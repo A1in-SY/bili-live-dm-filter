@@ -4,15 +4,15 @@ option go_package = "filter-core/api/v1";
 
 import "google/api/annotations.proto";
 
-service Core {
+service Setting {
     rpc GetConfig(GetConfigReq) returns (GetConfigResp) {
         option (google.api.http) = {
-            get: "/api/v1/core/get_config",
+            get: "/api/v1/setting/get_config",
         };
     }
     rpc SetConfig(SetConfigReq) returns (SetConfigResp) {
         option (google.api.http) = {
-            post: "/api/v1/core/set_config",
+            post: "/api/v1/setting/set_config",
             body: "*",
         };
     }

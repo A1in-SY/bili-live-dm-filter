@@ -1,9 +1,9 @@
-package rules
+package rule
 
 import (
 	"filter-core/internal/model/danmu"
 	"filter-core/internal/pkg/action"
-	"filter-core/internal/pkg/rules/matcher"
+	"filter-core/internal/pkg/rule/matcher"
 	"go.uber.org/zap"
 )
 

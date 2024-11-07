@@ -3,7 +3,7 @@ package main
 import (
 	"filter-core/internal/model/danmu"
 	"filter-core/internal/pkg/conn"
-	"filter-core/internal/pkg/rules"
+	"filter-core/internal/pkg/rule"
 	"filter-core/util/logger"
 	_ "net/http/pprof"
 )
@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	rm := rules.NewRuleManager()
+	rm := rule.NewRuleManager()
 	err = rm.AddRule("ceshi", 1, nil)
 	if err != nil {
 		panic(err)
