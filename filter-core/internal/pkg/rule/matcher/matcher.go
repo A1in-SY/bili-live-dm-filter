@@ -4,15 +4,11 @@ import (
 	danmu2 "filter-core/internal/model/danmu"
 )
 
-type MatcherParams struct {
-	List []*MatcherParamItem
-}
-
-type MatcherParamItem struct {
+type MatcherParam struct {
 	Param string
 	// 标识value类型，由MatcherInfo给出后透传返回
-	Type BaseMatcherType
-	Mode BaseMatchMode
+	BaseType  BaseMatcherType
+	MatchMode BaseMatchMode
 	// service层为string，在pkg层根据type解析
 	Value interface{}
 }
@@ -29,12 +25,13 @@ type baseMatcher interface {
 
 type DanmuMatcher interface {
 	IsDanmuMatch(dm *danmu2.Danmu) bool
+	GetMatcherInfo() []*MatcherInfo
 }
 
-func NewDanmuMatcher(t danmu2.DanmuType, params *MatcherParams) DanmuMatcher {
+func NewDanmuMatcher(t danmu2.DanmuType, paramList []*MatcherParam) DanmuMatcher {
 	switch t {
 	case danmu2.DanmuTypeDANMUMSG:
-		return newDanmuMsgMatcher(params.List)
+		return newDanmuMsgMatcher(paramList)
 	default:
 		return nil
 	}

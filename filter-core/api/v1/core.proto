@@ -5,4 +5,5 @@ option go_package = "filter-core/api/v1";
 import "google/api/annotations.proto";
 
 service Core {
+
 }

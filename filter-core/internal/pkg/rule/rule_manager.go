@@ -1,9 +1,12 @@
 package rule
 
 import (
+	pb "filter-core/api/v1"
 	"filter-core/internal/pkg/action"
 	"filter-core/internal/pkg/rule/matcher"
+	"filter-core/util/errwarp"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -37,11 +40,33 @@ func (mng *RuleManager) GetRuleList() []*Rule {
 }
 
 // 这里接受pb，解析为params
-func (mng *RuleManager) AddRule(name string, dmType int64, actionList []action.RuleAction) error {
+func (mng *RuleManager) AddRule(name string, dmType int64, paramList []*pb.MatcherParam, actionList []action.RuleAction) error {
 	mng.mu.Lock()
 	defer mng.mu.Unlock()
 	ruleId := fmt.Sprintf("rule_%v", time.Now().UnixMilli())
-	rule := NewRule(ruleId, name, dmType, &matcher.MatcherParams{}, actionList)
+	matcherParamList := make([]*matcher.MatcherParam, 0)
+	for _, param := range paramList {
+		var value interface{}
+		var err error
+		switch param.BaseType {
+		case int64(matcher.BaseMatcherTypeString):
+			value = param.Value
+		case int64(matcher.BaseMatcherTypeInt64):
+			value, err = strconv.ParseInt(param.Value, 10, 64)
+			if err != nil {
+				return errwarp.Warp("parse base int matcher type fail", err)
+			}
+		default:
+			return errwarp.Warp(fmt.Sprintf("unknown base matcher type: %v", param.BaseType), nil)
+		}
+		matcherParamList = append(matcherParamList, &matcher.MatcherParam{
+			Param:     param.Param,
+			BaseType:  matcher.BaseMatcherType(param.BaseType),
+			MatchMode: matcher.BaseMatchMode(param.MatchMode),
+			Value:     value,
+		})
+	}
+	rule := NewRule(ruleId, name, dmType, matcherParamList, actionList)
 	mng.ruleMap[ruleId] = rule
 	return nil
 }

@@ -20,7 +20,7 @@ func main() {
 		panic(err)
 	}
 	rm := rule.NewRuleManager()
-	err = rm.AddRule("ceshi", 1, nil)
+	err = rm.AddRule("ceshi", 1, nil, nil)
 	if err != nil {
 		panic(err)
 	}

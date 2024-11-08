@@ -3,37 +3,19 @@
 
 openapi: 3.0.3
 info:
-    title: Core API
+    title: Rule API
     version: 0.0.1
 paths:
-    /api/v1/core/get_config:
-        get:
-            tags:
-                - Core
-            operationId: Core_GetConfig
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/GetConfigResp'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /api/v1/core/set_config:
+    /api/v1/core/add_rule:
         post:
             tags:
-                - Core
-            operationId: Core_SetConfig
+                - Rule
+            operationId: Rule_AddRule
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/SetConfigReq'
+                            $ref: '#/components/schemas/AddRuleReq'
                 required: true
             responses:
                 "200":
@@ -41,7 +23,31 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/SetConfigResp'
+                                $ref: '#/components/schemas/AddRuleResp'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/v1/core/del_rule:
+        post:
+            tags:
+                - Rule
+            operationId: Rule_DelRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DelRuleReq'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DelRuleResp'
                 default:
                     description: Default error response
                     content:
@@ -50,46 +56,32 @@ paths:
                                 $ref: '#/components/schemas/Status'
 components:
     schemas:
-        Config:
+        AddRuleReq:
             type: object
             properties:
-                log_conf:
-                    $ref: '#/components/schemas/Config_LogConfig'
-                conn_conf:
-                    $ref: '#/components/schemas/Config_ConnConfig'
-        Config_ConnConfig:
+                name:
+                    type: string
+                dm_type:
+                    type: string
+                matcher_param_list:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/MatcherParam'
+                action_id_list:
+                    type: array
+                    items:
+                        type: string
+        AddRuleResp:
+            type: object
+            properties: {}
+        DelRuleReq:
             type: object
             properties:
-                force_auth:
-                    type: boolean
-                auth_uid:
+                rule_id:
                     type: string
-                auth_cookie:
-                    type: string
-                heartbeat_interval:
-                    type: string
-        Config_LogConfig:
+        DelRuleResp:
             type: object
-            properties:
-                level:
-                    type: string
-                file_name:
-                    type: string
-                max_size:
-                    type: string
-                max_age:
-                    type: string
-                max_backups:
-                    type: string
-                is_std_out:
-                    type: boolean
-                is_stack_trace:
-                    type: boolean
-        GetConfigResp:
-            type: object
-            properties:
-                conf:
-                    $ref: '#/components/schemas/Config'
+            properties: {}
         GoogleProtobufAny:
             type: object
             properties:
@@ -98,14 +90,17 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-        SetConfigReq:
+        MatcherParam:
             type: object
             properties:
-                conf:
-                    $ref: '#/components/schemas/Config'
-        SetConfigResp:
-            type: object
-            properties: {}
+                param:
+                    type: string
+                base_type:
+                    type: string
+                match_mode:
+                    type: string
+                value:
+                    type: string
         Status:
             type: object
             properties:
@@ -123,4 +118,4 @@ components:
                     description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
             description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
 tags:
-    - name: Core
+    - name: Rule

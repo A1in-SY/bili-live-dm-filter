@@ -2,6 +2,7 @@ package matcher
 
 import (
 	"filter-core/internal/model/danmu"
+	"go.uber.org/zap"
 )
 
 type danmuMsgMatcher struct {
@@ -9,23 +10,25 @@ type danmuMsgMatcher struct {
 	SenderUid []*int64Matcher
 }
 
-func newDanmuMsgMatcher(params []*MatcherParamItem) *danmuMsgMatcher {
+func newDanmuMsgMatcher(paramList []*MatcherParam) *danmuMsgMatcher {
 	matcher := &danmuMsgMatcher{
 		Content:   make([]*stringMatcher, 0),
 		SenderUid: make([]*int64Matcher, 0),
 	}
-	for _, param := range params {
+	for _, param := range paramList {
 		switch param.Param {
 		case "content":
 			matcher.Content = append(matcher.Content, &stringMatcher{
 				value: param.Value.(string),
-				mode:  param.Mode,
+				mode:  param.MatchMode,
 			})
 		case "sender_uid":
 			matcher.SenderUid = append(matcher.SenderUid, &int64Matcher{
 				value: param.Value.(int64),
-				mode:  param.Mode,
+				mode:  param.MatchMode,
 			})
+		default:
+			zap.S().Errorf("unsupported param: %s", param.Param)
 		}
 	}
 	return matcher
@@ -47,4 +50,19 @@ func (d *danmuMsgMatcher) IsDanmuMatch(dm *danmu.Danmu) bool {
 		}
 	}
 	return isMatch
+}
+
+func (d *danmuMsgMatcher) GetMatcherInfo() []*MatcherInfo {
+	return []*MatcherInfo{
+		&MatcherInfo{
+			Param:    "content",
+			Type:     BaseMatcherTypeString,
+			ModeList: []BaseMatchMode{stringMatchModeEqual, stringMatchModeContain, stringMatchModeRegex},
+		},
+		&MatcherInfo{
+			Param:    "sender_uid",
+			Type:     BaseMatcherTypeInt64,
+			ModeList: []BaseMatchMode{int64MatchModeEqual, int64MatchModeNotEqual, int64MatchModeGreater, int64MatchModeLess, int64MatchModeGreaterOrEqual, int64MatchModeLessOrEqual},
+		},
+	}
 }

@@ -18,12 +18,12 @@ type Rule struct {
 	dmChan danmu.DanmuChannel
 }
 
-func NewRule(id, name string, dmType int64, matcherParams *matcher.MatcherParams, actionList []action.RuleAction) *Rule {
+func NewRule(id, name string, dmType int64, matcherParamList []*matcher.MatcherParam, actionList []action.RuleAction) *Rule {
 	rule := &Rule{
 		id:         id,
 		name:       name,
 		dmType:     danmu.DanmuType(dmType),
-		dmMatcher:  matcher.NewDanmuMatcher(danmu.DanmuType(dmType), matcherParams),
+		dmMatcher:  matcher.NewDanmuMatcher(danmu.DanmuType(dmType), matcherParamList),
 		actionList: actionList,
 		dmChan:     NewRuleDanmuChannel(),
 	}

@@ -9,8 +9,8 @@ type BaseMatcherType int64
 type BaseMatchMode int64
 
 const (
-	BaseMatcherTypeString = 1
-	BaseMatcherTypeInt64  = 2
+	BaseMatcherTypeString BaseMatcherType = 1
+	BaseMatcherTypeInt64  BaseMatcherType = 2
 )
 
 type stringMatcher struct {
