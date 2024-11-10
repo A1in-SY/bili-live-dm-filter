@@ -2,10 +2,12 @@ package action
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"filter-core/util/errwarp"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 type qqPrivateAction struct {
@@ -14,17 +16,20 @@ type qqPrivateAction struct {
 	userId int64
 }
 
-func newQQPrivateAction(extraInfo map[string]interface{}) *qqPrivateAction {
-	url := extraInfo["url"].(string)
-	userId := extraInfo["user_id"].(int)
+func newQQPrivateAction(extraInfo map[string]string) (*qqPrivateAction, error) {
+	url := extraInfo["url"]
+	userId, err := strconv.ParseInt(extraInfo["user_id"], 10, 64)
+	if err != nil {
+		return nil, errwarp.Warp("qq private action parse user_id fail", err)
+	}
 	return &qqPrivateAction{
 		cli:    http.DefaultClient,
 		url:    url,
-		userId: int64(userId),
-	}
+		userId: userId,
+	}, nil
 }
 
-func (a *qqPrivateAction) DoAction(content string) error {
+func (a *qqPrivateAction) doAction(ctx context.Context, content string) error {
 	m1 := map[string]interface{}{
 		"user_id": a.userId,
 		"message": content,

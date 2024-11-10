@@ -40,14 +40,14 @@ func (mng *DmConnManager) DisableRoomDanmu(roomId int64) error {
 	return mng.connMap[roomId].Disable()
 }
 
-func (mng *DmConnManager) AddRoomDanmu(roomId int64) error {
+func (mng *DmConnManager) AddRoomDanmu(roomId int64, ruleChs []*danmu.DanmuChannel) error {
 	mng.mu.Lock()
 	defer mng.mu.Unlock()
 	//zap.S().Warnf("start add dmConnHelper of roomId: %d", roomId)
 	if _, ok := mng.connMap[roomId]; ok {
 		return errwarp.Warp(fmt.Sprintf("add dmConnHelper of roomId: %v fail, exist in manager map", roomId), nil)
 	}
-	mng.connMap[roomId] = NewDmConnHelper(roomId)
+	mng.connMap[roomId] = NewDmConnHelper(roomId, ruleChs)
 	return nil
 }
 
@@ -66,14 +66,14 @@ func (mng *DmConnManager) DelRoomDanmu(roomId int64) error {
 	return nil
 }
 
-func (mng *DmConnManager) UpdateRoomDanmuChannel(roomId int64, ruleChs []danmu.DanmuChannel) error {
+func (mng *DmConnManager) UpdateRoomDanmu(roomId int64, ruleChs []*danmu.DanmuChannel) error {
 	mng.mu.Lock()
 	defer mng.mu.Unlock()
 	//zap.S().Warnf("start update dmConnHelper channel of roomId: %d", roomId)
 	if _, ok := mng.connMap[roomId]; !ok {
 		return errwarp.Warp(fmt.Sprintf("update dmConnHelper channel of roomId: %v fail, not exist in manager map", roomId), nil)
 	}
-	mng.connMap[roomId].UpdateRoomDanmuChannel(ruleChs)
+	mng.connMap[roomId].UpdateRoomDanmu(ruleChs)
 	return nil
 }
 

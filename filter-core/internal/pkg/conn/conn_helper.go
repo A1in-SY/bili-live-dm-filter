@@ -15,7 +15,7 @@ type DmConnHelper struct {
 	// 处理dmConn锁
 	connMu sync.Mutex
 	// 接收弹幕消息的channel
-	ruleChs []danmu.DanmuChannel
+	ruleChs []*danmu.DanmuChannel
 	// 搬运弹幕消息锁，在更新channel时上写锁
 	ruleMu sync.RWMutex
 	// 搬运启停状态
@@ -25,11 +25,11 @@ type DmConnHelper struct {
 	isClosed bool
 }
 
-func NewDmConnHelper(roomId int64) *DmConnHelper {
+func NewDmConnHelper(roomId int64, ruleChs []*danmu.DanmuChannel) *DmConnHelper {
 	helper := &DmConnHelper{
 		roomId:    roomId,
 		dmConn:    NewDmConn(roomId),
-		ruleChs:   nil,
+		ruleChs:   ruleChs,
 		ruleMu:    sync.RWMutex{},
 		isEnabled: true,
 		isClosed:  false,
@@ -67,7 +67,7 @@ func (helper *DmConnHelper) Disable() error {
 }
 
 // 全量更新channel
-func (helper *DmConnHelper) UpdateRoomDanmuChannel(ruleChs []danmu.DanmuChannel) {
+func (helper *DmConnHelper) UpdateRoomDanmu(ruleChs []*danmu.DanmuChannel) {
 	helper.ruleMu.Lock()
 	defer helper.ruleMu.Unlock()
 	helper.ruleChs = ruleChs
@@ -88,9 +88,7 @@ func (helper *DmConnHelper) transport() {
 		dmList := helper.dmConn.Read()
 		for _, dm := range dmList {
 			for _, ch := range helper.ruleChs {
-				if ch.IsAvailable() {
-					ch.Send(dm)
-				}
+				ch.Send(dm)
 			}
 		}
 		helper.ruleMu.RUnlock()

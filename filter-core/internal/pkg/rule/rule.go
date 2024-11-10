@@ -2,7 +2,6 @@ package rule
 
 import (
 	"filter-core/internal/model/danmu"
-	"filter-core/internal/pkg/action"
 	"filter-core/internal/pkg/rule/matcher"
 	"go.uber.org/zap"
 )
@@ -12,20 +11,20 @@ type Rule struct {
 	name      string
 	dmType    danmu.DanmuType
 	dmMatcher matcher.DanmuMatcher
+	// 对上关联长链
+	dmChan *danmu.DanmuChannel
 	// 对下关联触发动作
-	actionList []action.RuleAction
-	// 对上关联弹幕通道
-	dmChan danmu.DanmuChannel
+	actionChs []*danmu.DanmuChannel
 }
 
-func NewRule(id, name string, dmType int64, matcherParamList []*matcher.MatcherParam, actionList []action.RuleAction) *Rule {
+func NewRule(id, name string, dmType int64, matcherParamList []*matcher.MatcherParam, actionChs []*danmu.DanmuChannel) *Rule {
 	rule := &Rule{
-		id:         id,
-		name:       name,
-		dmType:     danmu.DanmuType(dmType),
-		dmMatcher:  matcher.NewDanmuMatcher(danmu.DanmuType(dmType), matcherParamList),
-		actionList: actionList,
-		dmChan:     NewRuleDanmuChannel(),
+		id:        id,
+		name:      name,
+		dmType:    danmu.DanmuType(dmType),
+		dmMatcher: matcher.NewDanmuMatcher(danmu.DanmuType(dmType), matcherParamList),
+		actionChs: actionChs,
+		dmChan:    danmu.NewDanmuChannel(),
 	}
 	go rule.Start()
 	return rule
@@ -40,6 +39,6 @@ func (r *Rule) Start() {
 	}
 }
 
-func (r *Rule) GetRuleDmChan() danmu.DanmuChannel {
+func (r *Rule) GetRuleDmChan() *danmu.DanmuChannel {
 	return r.dmChan
 }

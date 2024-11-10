@@ -12,13 +12,12 @@ var Conf *Config
 func init() {
 	Conf = &Config{
 		LogConf: &LogConfig{
-			Level:        "debug",
-			FileName:     "filter-conn.log",
-			MaxSize:      200,
-			MaxAge:       0,
-			MaxBackups:   0,
-			IsStdout:     true,
-			IsStackTrace: false,
+			Level:      "debug",
+			FileName:   "filter-conn.log",
+			MaxSize:    200,
+			MaxAge:     0,
+			MaxBackups: 0,
+			IsStdout:   true,
 		},
 		ConnConf: &ConnConfig{
 			ForceAuth:         true,
@@ -53,11 +52,10 @@ type LogConfig struct {
 	Level    string
 	FileName string
 	// 单位MB
-	MaxSize      int
-	MaxAge       int
-	MaxBackups   int
-	IsStdout     bool
-	IsStackTrace bool
+	MaxSize    int
+	MaxAge     int
+	MaxBackups int
+	IsStdout   bool
 }
 
 type ConnConfig struct {

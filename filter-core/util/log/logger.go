@@ -1,12 +1,14 @@
-package logger
+package log
 
 import (
-	"os"
-	"time"
-
+	"context"
 	"filter-core/config"
+	"filter-core/util/xcontext"
+	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"os"
+	"time"
 )
 
 const (
@@ -46,9 +48,7 @@ func init() {
 	encodeConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 	}
-	encodeConfig.TimeKey = "time"
 	encodeConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	encodeConfig.EncodeCaller = zapcore.ShortCallerEncoder
 	encoder = zapcore.NewConsoleEncoder(encodeConfig)
 
 	level := new(zapcore.Level)
@@ -58,17 +58,21 @@ func init() {
 	}
 
 	core := zapcore.NewCore(encoder, writeSyncer, level)
-	var logger *zap.Logger
-	if conf.IsStackTrace {
-		logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel))
-	} else {
-		logger = zap.New(core, zap.AddCaller())
-	}
+	z := zap.New(core, zap.AddCaller())
+	zap.ReplaceGlobals(z)
+	zap.S().Info(logo)
 
-	zap.ReplaceGlobals(logger)
 	return
 }
 
-func Logo() {
-	zap.S().Info(logo)
+func Infoc(ctx context.Context, template string, args ...interface{}) {
+	zap.S().Infof(fmt.Sprintf("trace_id:%v\t%v", xcontext.GetTraceId(ctx), template), args...)
+}
+
+func Warnc(ctx context.Context, template string, args ...interface{}) {
+	zap.S().Warnf(fmt.Sprintf("trace_id:%v\t%v", xcontext.GetTraceId(ctx), template), args...)
+}
+
+func Errorc(ctx context.Context, template string, args ...interface{}) {
+	zap.S().Errorf(fmt.Sprintf("trace_id:%v\t%v", xcontext.GetTraceId(ctx), template), args...)
 }

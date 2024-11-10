@@ -58,15 +58,14 @@ func (conn *DmConn) connect() error {
 		_ = conn.ws.Close()
 		conn.ws = nil
 	}
-	info, err := GetRoomInfo(conn.info.RoomShortId)
+	err := conn.FetchRoomInfo()
 	if err != nil {
 		return errwarp.Warp("get room danmu info fail", err)
 	}
-	conn.info = info
 	dialer := &websocket.Dialer{}
-	ws, _, err := dialer.Dial(info.WsUrl, nil)
+	ws, _, err := dialer.Dial(conn.info.WsUrl, nil)
 	if err != nil {
-		return errwarp.Warp(fmt.Sprintf("ws dial %s fail", info.WsUrl), err)
+		return errwarp.Warp(fmt.Sprintf("ws dial %s fail", conn.info.WsUrl), err)
 	}
 	conn.ws = ws
 	conn.isConnected = true

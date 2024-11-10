@@ -5,5 +5,259 @@ option go_package = "filter-core/api/v1";
 import "google/api/annotations.proto";
 
 service Core {
+    rpc AddLiveRoomDanmu(AddLiveRoomDanmuReq) returns (AddLiveRoomDanmuResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/add_live_room_danmu",
+            body: "*",
+        };
+    };
+    rpc DelLiveRoomDanmu(DelLiveRoomDanmuReq) returns (DelLiveRoomDanmuResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/del_live_room_danmu",
+            body: "*",
+        };
+    };
+    rpc UpdateLiveRoomDanmu(UpdateLiveRoomDanmuReq) returns (UpdateLiveRoomDanmuResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/update_live_room_danmu",
+            body: "*",
+        };
+    }
+    rpc EnableLiveRoomDanmu(EnableLiveRoomDanmuReq) returns (EnableLiveRoomDanmuResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/enable_live_room_danmu",
+            body: "*",
+        };
+    };
+    rpc DisableLiveRoomDanmu(DisableLiveRoomDanmuReq) returns (DisableLiveRoomDanmuResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/disable_live_room_danmu",
+            body: "*",
+        };
+    };
+    rpc AddRule(AddRuleReq) returns (AddRuleResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/add_rule",
+            body: "*",
+        };
+    }
+    rpc DelRule(DelRuleReq) returns (DelRuleResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/del_rule",
+            body: "*",
+        };
+    }
+    rpc UpdateRule(UpdateRuleReq) returns (UpdateRuleResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/update_rule",
+            body: "*",
+        };
+    }
+    rpc EnableRule(EnableRuleReq) returns (EnableRuleResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/enable_rule",
+            body: "*",
+        };
+    }
+    rpc DisableRule(DisableRuleReq) returns (DisableRuleResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/disable_rule",
+            body: "*",
+        };
+    }
+    rpc PreCheckDelRule(PreCheckDelRuleReq) returns (PreCheckDelRuleResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/pre_check_del_rule",
+            body: "*",
+        };
+    }
+    rpc AddAction(AddActionReq) returns (AddActionResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/add_action",
+            body: "*",
+        };
+    }
+    rpc DelAction(DelActionReq) returns (DelActionResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/del_action",
+            body: "*",
+        };
+    }
+    rpc UpdateAction(UpdateActionReq) returns (UpdateActionResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/update_action",
+            body: "*",
+        };
+    }
+    rpc EnableAction(EnableActionReq) returns (EnableActionResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/enable_action",
+            body: "*",
+        };
+    }
+    rpc DisableAction(DisableActionReq) returns (DisableActionResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/disable_action",
+            body: "*",
+        };
+    }
+    rpc PreCheckDelAction(PreCheckDelActionReq) returns (PreCheckDelActionResp) {
+        option (google.api.http) = {
+            post: "/api/v1/core/pre_check_del_action",
+            body: "*",
+        };
+    }
+}
 
+message AddLiveRoomDanmuReq {
+    int64 room_id = 1 [json_name = "room_id"];
+    repeated string rule_id_list = 2 [json_name = "rule_id_list"];
+}
+
+message AddLiveRoomDanmuResp {
+}
+
+message DelLiveRoomDanmuReq {
+    int64 room_id = 1 [json_name = "room_id"];
+}
+
+message DelLiveRoomDanmuResp {
+}
+
+message UpdateLiveRoomDanmuReq {
+    int64 room_id = 1 [json_name = "room_id"];
+    repeated string rule_id_list = 2 [json_name = "rule_id_list"];
+}
+
+message UpdateLiveRoomDanmuResp {
+}
+
+message EnableLiveRoomDanmuReq {
+    int64 room_id = 1 [json_name = "room_id"];
+}
+
+message EnableLiveRoomDanmuResp {
+}
+
+message DisableLiveRoomDanmuReq {
+    int64 room_id = 1 [json_name = "room_id"];
+}
+
+message DisableLiveRoomDanmuResp {
+}
+
+message MatcherParam {
+    string param = 1 [json_name = "param"];
+    int64 base_type = 2 [json_name = "base_type"];
+    int64 match_mode = 3 [json_name = "match_mode"];
+    string value = 4 [json_name = "value"];
+}
+
+message AddRuleReq {
+    string name = 1 [json_name = "name"];
+    int64 dm_type = 2 [json_name = "dm_type"];
+    repeated MatcherParam matcher_param_list = 3 [json_name = "matcher_param_list"];
+    repeated string action_id_list = 4 [json_name = "action_id_list"];
+}
+
+message AddRuleResp {
+}
+
+message DelRuleReq {
+    string rule_id = 1 [json_name = "rule_id"];
+}
+
+message DelRuleResp {
+}
+
+message UpdateRuleReq {
+    string rule_id = 1 [json_name = "rule_id"];
+    string name = 2 [json_name = "name"];
+    int64 dm_type = 3 [json_name = "dm_type"];
+    repeated MatcherParam matcher_param_list = 4 [json_name = "matcher_param_list"];
+    repeated string action_id_list = 5 [json_name = "action_id_list"];
+}
+
+message UpdateRuleResp {
+}
+
+message EnableRuleReq {
+    string rule_id = 1 [json_name = "rule_id"];
+}
+
+message EnableRuleResp {
+}
+
+message DisableRuleReq {
+    string rule_id = 1 [json_name = "rule_id"];
+}
+
+message DisableRuleResp {
+}
+
+message PreCheckDelRuleReq {
+    string rule_id = 1 [json_name = "rule_id"];
+}
+
+message PreCheckDelRuleResp {
+    repeated RoomInfo room_info_list = 1 [json_name = "room_info_list"];
+}
+
+message RoomInfo {
+    int64 room_id = 1 [json_name = "room_id"];
+    string name = 2 [json_name = "name"];
+    string face = 3 [json_name = "face"];
+}
+
+message AddActionReq {
+    string name = 1 [json_name = "name"];
+    int64 action_type = 2 [json_name = "action_type"];
+    map<string, string> extra = 3 [json_name = "extra"];
+}
+
+message AddActionResp {
+}
+
+message DelActionReq {
+    string action_id = 1 [json_name = "action_id"];
+}
+
+message DelActionResp {
+}
+
+message UpdateActionReq {
+    string action_id = 1 [json_name = "action_id"];
+    string name = 2 [json_name = "name"];
+    int64 action_type = 3 [json_name = "action_type"];
+    map<string, string> extra = 4 [json_name = "extra"];
+}
+
+message UpdateActionResp {
+}
+
+message EnableActionReq {
+    string action_id = 1 [json_name = "action_id"];
+}
+
+message EnableActionResp {
+}
+
+message DisableActionReq {
+    string action_id = 1 [json_name = "action_id"];
+}
+
+message DisableActionResp {
+}
+
+message PreCheckDelActionReq {
+    string action_id = 1 [json_name = "action_id"];
+}
+
+message PreCheckDelActionResp {
+    repeated RuleInfo rule_info_list = 1 [json_name = "rule_info_list"];
+}
+
+message RuleInfo {
+    string rule_id = 1 [json_name = "rule_id"];
+    string name = 2 [json_name = "name"];
 }

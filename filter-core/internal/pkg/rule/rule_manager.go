@@ -2,7 +2,7 @@ package rule
 
 import (
 	pb "filter-core/api/v1"
-	"filter-core/internal/pkg/action"
+	"filter-core/internal/model/danmu"
 	"filter-core/internal/pkg/rule/matcher"
 	"filter-core/util/errwarp"
 	"fmt"
@@ -23,10 +23,13 @@ func NewRuleManager() *RuleManager {
 	}
 }
 
-func (mng *RuleManager) GetRuleByRuleId(ruleId string) *Rule {
+func (mng *RuleManager) GetRuleByRuleId(ruleId string) (*Rule, error) {
 	mng.mu.Lock()
 	defer mng.mu.Unlock()
-	return mng.ruleMap[ruleId]
+	if rule, ok := mng.ruleMap[ruleId]; ok {
+		return rule, nil
+	}
+	return nil, errwarp.Warp(fmt.Sprintf("can't find rule with id: %v", ruleId), nil)
 }
 
 func (mng *RuleManager) GetRuleList() []*Rule {
@@ -40,7 +43,7 @@ func (mng *RuleManager) GetRuleList() []*Rule {
 }
 
 // 这里接受pb，解析为params
-func (mng *RuleManager) AddRule(name string, dmType int64, paramList []*pb.MatcherParam, actionList []action.RuleAction) error {
+func (mng *RuleManager) AddRule(name string, dmType int64, paramList []*pb.MatcherParam, actionChs []*danmu.DanmuChannel) error {
 	mng.mu.Lock()
 	defer mng.mu.Unlock()
 	ruleId := fmt.Sprintf("rule_%v", time.Now().UnixMilli())
@@ -66,7 +69,7 @@ func (mng *RuleManager) AddRule(name string, dmType int64, paramList []*pb.Match
 			Value:     value,
 		})
 	}
-	rule := NewRule(ruleId, name, dmType, matcherParamList, actionList)
+	rule := NewRule(ruleId, name, dmType, matcherParamList, actionChs)
 	mng.ruleMap[ruleId] = rule
 	return nil
 }
