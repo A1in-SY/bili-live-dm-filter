@@ -3,7 +3,7 @@ package rule
 import (
 	"filter-core/internal/model/danmu"
 	"filter-core/internal/pkg/rule/matcher"
-	"go.uber.org/zap"
+	"filter-core/util/log"
 )
 
 type Rule struct {
@@ -34,7 +34,7 @@ func (r *Rule) Start() {
 	for {
 		dm := r.dmChan.Recv()
 		if dm.Type == r.dmType {
-			zap.L().Info("recv danmu", zap.Any("", dm))
+			log.Infoc(dm.Context(), "recv danmu: %v", dm.String())
 		}
 	}
 }

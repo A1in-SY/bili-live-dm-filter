@@ -2,29 +2,31 @@ package danmu
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"filter-core/util/errwarp"
+	"filter-core/util/log"
+	"filter-core/util/xcontext"
 	"github.com/andybalholm/brotli"
-	"go.uber.org/zap"
 	"io"
 )
 
 func DecodeDanmu(data []byte) []*Danmu {
 	if len(data) < 16 {
-		zap.S().Errorf("illegal danmu data")
+		log.Error("illegal danmu data")
 		return nil
 	}
 	var headerLen uint16
 	err := binary.Read(bytes.NewReader(data[4:6]), binary.BigEndian, &headerLen)
 	if err != nil {
-		zap.S().Errorf("read danmu header len fail", err)
+		log.Error("read danmu header len err: %v", err)
 		return nil
 	}
 	header := &DanmuHeader{}
 	err = binary.Read(bytes.NewReader(data[0:headerLen]), binary.BigEndian, header)
 	if err != nil {
-		zap.S().Errorf("read danmu header fail", err)
+		log.Error("read danmu header err: %v", err)
 		return nil
 	}
 	switch header.OpCode {
@@ -33,10 +35,10 @@ func DecodeDanmu(data []byte) []*Danmu {
 	case OpCodeCommand:
 		return decodeCommandDanmu(header, data)
 	case OpCodeHeartBeat, OpCodeAuth, OpCodeAuthResp:
-		zap.S().Errorf("not supposed danmu opcode: %v", header.OpCode)
+		log.Error("not supposed danmu opcode: %v", header.OpCode)
 		return nil
 	default:
-		zap.S().Errorf("unknown danmu opcode: %v", header.OpCode)
+		log.Error("unknown danmu opcode: %v", header.OpCode)
 		return nil
 	}
 }
@@ -55,7 +57,7 @@ func decodeCommandDanmu(header *DanmuHeader, data []byte) []*Danmu {
 	case ProtoVerBrotli:
 		return decodeCommandDanmuInBrotli(header, data)
 	default:
-		zap.S().Errorf("unknown danmu protover: %v", header.ProtoVer)
+		log.Error("unknown danmu protover: %v", header.ProtoVer)
 		return nil
 	}
 }
@@ -64,7 +66,7 @@ func decodeCommandDanmuInBrotli(header *DanmuHeader, data []byte) []*Danmu {
 	reader := brotli.NewReader(bytes.NewReader(data[header.HeaderLen:]))
 	multiBodyData, err := io.ReadAll(reader)
 	if err != nil {
-		zap.S().Errorf("read brotli data fail")
+		log.Error("read brotli data fail")
 		return nil
 	}
 	danmuList := make([]*Danmu, 0)
@@ -72,13 +74,13 @@ func decodeCommandDanmuInBrotli(header *DanmuHeader, data []byte) []*Danmu {
 		var totalLen uint32
 		rErr := binary.Read(bytes.NewReader(multiBodyData[i:i+4]), binary.BigEndian, &totalLen)
 		if rErr != nil {
-			zap.S().Errorf("read total len in multi body data err: %v", rErr)
+			log.Error("read total len in multi body data err: %v", rErr)
 			break
 		}
 		dm, dErr := decodeCommandDanmuData(multiBodyData[i+16 : i+int(totalLen)])
 		i = i + int(totalLen)
 		if dErr != nil {
-			zap.S().Errorf("decode danmu data err: %v", dErr)
+			log.Error("decode danmu data err: %v", dErr)
 			continue
 		}
 		if dm != nil {
@@ -95,7 +97,7 @@ func decodeCommandDanmuData(data []byte) (*Danmu, error) {
 		return nil, errwarp.Warp("unmarshal danmu type fail", err)
 	}
 	switch t.Cmd {
-	case DANMUMSG:
+	case DanmuType2Cmd[DanmuTypeDANMUMSG]:
 		dmMsgInfo, ok := t.Info.([]interface{})
 		if !ok {
 			return nil, errwarp.Warp("decode DANMU_MSG fail", nil)
@@ -114,6 +116,7 @@ func decodeCommandDanmuData(data []byte) (*Danmu, error) {
 			return nil, errwarp.Warp("decode DANMU_MSG fail", nil)
 		}
 		dm := &Danmu{
+			ctx:  xcontext.SetTraceId(context.Background()),
 			Type: DanmuTypeDANMUMSG,
 			Data: &DanmuMsgData{
 				Content:    content,

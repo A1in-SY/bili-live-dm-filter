@@ -1,5 +1,7 @@
 package danmu
 
+import "encoding/json"
+
 type DanmuHeader struct {
 	TotalLen  uint32
 	HeaderLen uint16
@@ -41,34 +43,6 @@ func NewDanmuHeader(ver protoVer, code opCode) *DanmuHeader {
 	}
 }
 
-type AuthReq struct {
-	Uid      int64  `json:"uid,omitempty"`
-	RoomId   int64  `json:"roomid"`
-	ProtoVer int64  `json:"protover,omitempty"`
-	Platform string `json:"platform,omitempty"`
-	Type     int64  `json:"type,omitempty"`
-	Key      string `json:"key,omitempty"`
-}
-
-type AuthResp struct {
-	Code authResultCode `json:"code"`
-}
-
-type authResultCode int64
-
-const AuthResultCodeSuccess authResultCode = 0
-
-func NewAuthReq(uid, roomId int64, key string) *AuthReq {
-	return &AuthReq{
-		Uid:      uid,
-		RoomId:   roomId,
-		ProtoVer: 3,
-		Platform: "web",
-		Type:     2,
-		Key:      key,
-	}
-}
-
 type cmdType struct {
 	Cmd  string      `json:"cmd"`
 	Data interface{} `json:"data"`
@@ -76,21 +50,29 @@ type cmdType struct {
 }
 
 const (
+	UNKNOWN string = "UNKNOWN"
 	// 普通弹幕，好像表情包弹幕也在里面
 	DANMUMSG string = "DANMU_MSG"
 )
 
 type DanmuType int64
 
+func (d DanmuType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(DanmuType2Name[d])
+}
+
 const (
+	DanmuTypeUnknown  DanmuType = 0
 	DanmuTypeDANMUMSG DanmuType = 1
 )
 
 var (
 	DanmuType2Cmd = map[DanmuType]string{
+		DanmuTypeUnknown:  UNKNOWN,
 		DanmuTypeDANMUMSG: DANMUMSG,
 	}
 	DanmuType2Name = map[DanmuType]string{
+		DanmuTypeUnknown:  "未知弹幕类型",
 		DanmuTypeDANMUMSG: "普通弹幕",
 	}
 )

@@ -58,7 +58,7 @@ func init() {
 	}
 
 	core := zapcore.NewCore(encoder, writeSyncer, level)
-	z := zap.New(core, zap.AddCaller())
+	z := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 	zap.ReplaceGlobals(z)
 	zap.S().Info(logo)
 
@@ -75,4 +75,16 @@ func Warnc(ctx context.Context, template string, args ...interface{}) {
 
 func Errorc(ctx context.Context, template string, args ...interface{}) {
 	zap.S().Errorf(fmt.Sprintf("trace_id:%v\t%v", xcontext.GetTraceId(ctx), template), args...)
+}
+
+func Info(template string, args ...interface{}) {
+	zap.S().Infof(template, args...)
+}
+
+func Warn(template string, args ...interface{}) {
+	zap.S().Warnf(template, args...)
+}
+
+func Error(template string, args ...interface{}) {
+	zap.S().Errorf(template, args...)
 }

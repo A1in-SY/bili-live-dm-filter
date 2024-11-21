@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	traceIdKey     = "trace_id"
+	traceIdKey     = "trace-id"
 	defaultTraceId = "0000000000000000"
 )
 
@@ -23,4 +23,8 @@ func SetTraceId(ctx context.Context) context.Context {
 		return context.WithValue(ctx, traceIdKey, strings.ReplaceAll(uuid.New().String(), "-", "")[0:16])
 	}
 	return ctx
+}
+
+func TraceIdKey() string {
+	return traceIdKey
 }

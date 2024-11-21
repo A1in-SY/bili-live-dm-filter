@@ -2,12 +2,11 @@ package service
 
 import (
 	"context"
+	pb "filter-core/api/v1"
 	"filter-core/internal/pkg/action"
 	"filter-core/internal/pkg/conn"
 	"filter-core/internal/pkg/rule"
-	"filter-core/util/log"
-
-	pb "filter-core/api/v1"
+	"filter-core/util/xerror"
 )
 
 type CoreService struct {
@@ -26,8 +25,8 @@ func NewCoreService() *CoreService {
 }
 
 func (s *CoreService) AddLiveRoomDanmu(ctx context.Context, req *pb.AddLiveRoomDanmuReq) (*pb.AddLiveRoomDanmuResp, error) {
-	log.Infoc(ctx, "http req")
-	return &pb.AddLiveRoomDanmuResp{}, nil
+
+	return &pb.AddLiveRoomDanmuResp{}, xerror.New(10000, "123")
 }
 func (s *CoreService) DelLiveRoomDanmu(ctx context.Context, req *pb.DelLiveRoomDanmuReq) (*pb.DelLiveRoomDanmuResp, error) {
 	return &pb.DelLiveRoomDanmuResp{}, nil
