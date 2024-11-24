@@ -1,8 +1,9 @@
 package matcher
 
 import (
+	"context"
 	"filter-core/internal/model/danmu"
-	"go.uber.org/zap"
+	"filter-core/util/log"
 )
 
 type danmuMsgMatcher struct {
@@ -10,7 +11,7 @@ type danmuMsgMatcher struct {
 	SenderUid []*int64Matcher
 }
 
-func newDanmuMsgMatcher(paramList []*MatcherParam) *danmuMsgMatcher {
+func newDanmuMsgMatcher(ctx context.Context, paramList []*MatcherParam) *danmuMsgMatcher {
 	matcher := &danmuMsgMatcher{
 		Content:   make([]*stringMatcher, 0),
 		SenderUid: make([]*int64Matcher, 0),
@@ -28,7 +29,7 @@ func newDanmuMsgMatcher(paramList []*MatcherParam) *danmuMsgMatcher {
 				mode:  param.MatchMode,
 			})
 		default:
-			zap.S().Errorf("unsupported param: %s", param.Param)
+			log.Errorc(ctx, "unsupported param: %s", param.Param)
 		}
 	}
 	return matcher

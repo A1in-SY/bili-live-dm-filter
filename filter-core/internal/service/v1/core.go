@@ -3,9 +3,12 @@ package service
 import (
 	"context"
 	pb "filter-core/api/v1"
+	"filter-core/internal/model/danmu"
 	"filter-core/internal/pkg/action"
 	"filter-core/internal/pkg/conn"
 	"filter-core/internal/pkg/rule"
+	"filter-core/util/errwarp"
+	"filter-core/util/log"
 	"filter-core/util/xerror"
 )
 
@@ -25,8 +28,22 @@ func NewCoreService() *CoreService {
 }
 
 func (s *CoreService) AddLiveRoomDanmu(ctx context.Context, req *pb.AddLiveRoomDanmuReq) (*pb.AddLiveRoomDanmuResp, error) {
-
-	return &pb.AddLiveRoomDanmuResp{}, xerror.New(10000, "123")
+	resp := &pb.AddLiveRoomDanmuResp{}
+	ruleChs := make([]*danmu.DanmuChannel, 0)
+	for _, id := range req.GetRuleIdList() {
+		ch, err := s.rm.GetRuleDmChanByRuleId(ctx, id)
+		if err != nil {
+			log.Errorc(ctx, "add live room danmu error: %v", errwarp.Warp("manager get rule dm chan by id fail", err))
+			return nil, xerror.DefaultError
+		}
+		ruleChs = append(ruleChs, ch)
+	}
+	err := s.cm.AddRoomDanmu(ctx, req.GetRoomId(), ruleChs)
+	if err != nil {
+		log.Errorc(ctx, "add live room danmu error: %v", errwarp.Warp("manager add room danmu fail", err))
+		return nil, xerror.DefaultError
+	}
+	return resp, nil
 }
 func (s *CoreService) DelLiveRoomDanmu(ctx context.Context, req *pb.DelLiveRoomDanmuReq) (*pb.DelLiveRoomDanmuResp, error) {
 	return &pb.DelLiveRoomDanmuResp{}, nil
@@ -41,7 +58,13 @@ func (s *CoreService) DisableLiveRoomDanmu(ctx context.Context, req *pb.DisableL
 	return &pb.DisableLiveRoomDanmuResp{}, nil
 }
 func (s *CoreService) AddRule(ctx context.Context, req *pb.AddRuleReq) (*pb.AddRuleResp, error) {
-	return &pb.AddRuleResp{}, nil
+	resp := &pb.AddRuleResp{}
+	err := s.rm.AddRule(ctx, req.GetName(), req.GetDmType(), req.GetMatcherParamList(), nil)
+	if err != nil {
+		log.Errorc(ctx, "add rule error: %v", errwarp.Warp("manager add rule fail", err))
+		return nil, xerror.DefaultError
+	}
+	return resp, nil
 }
 func (s *CoreService) DelRule(ctx context.Context, req *pb.DelRuleReq) (*pb.DelRuleResp, error) {
 	return &pb.DelRuleResp{}, nil

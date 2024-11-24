@@ -1,10 +1,12 @@
 package rule
 
 import (
+	"context"
 	pb "filter-core/api/v1"
 	"filter-core/internal/model/danmu"
 	"filter-core/internal/pkg/rule/matcher"
 	"filter-core/util/errwarp"
+	"filter-core/util/log"
 	"fmt"
 	"strconv"
 	"sync"
@@ -23,11 +25,11 @@ func NewRuleManager() *RuleManager {
 	}
 }
 
-func (mng *RuleManager) GetRuleByRuleId(ruleId string) (*Rule, error) {
+func (mng *RuleManager) GetRuleDmChanByRuleId(ctx context.Context, ruleId string) (*danmu.DanmuChannel, error) {
 	mng.mu.Lock()
 	defer mng.mu.Unlock()
 	if rule, ok := mng.ruleMap[ruleId]; ok {
-		return rule, nil
+		return rule.dmChan, nil
 	}
 	return nil, errwarp.Warp(fmt.Sprintf("can't find rule with id: %v", ruleId), nil)
 }
@@ -43,7 +45,7 @@ func (mng *RuleManager) GetRuleList() []*Rule {
 }
 
 // 这里接受pb，解析为params
-func (mng *RuleManager) AddRule(name string, dmType int64, paramList []*pb.MatcherParam, actionChs []*danmu.DanmuChannel) error {
+func (mng *RuleManager) AddRule(ctx context.Context, name string, dmType int64, paramList []*pb.MatcherParam, actionChs []*danmu.DanmuChannel) error {
 	mng.mu.Lock()
 	defer mng.mu.Unlock()
 	ruleId := fmt.Sprintf("rule_%v", time.Now().UnixMilli())
@@ -69,7 +71,8 @@ func (mng *RuleManager) AddRule(name string, dmType int64, paramList []*pb.Match
 			Value:     value,
 		})
 	}
-	rule := NewRule(ruleId, name, dmType, matcherParamList, actionChs)
+	rule := newRule(ctx, ruleId, name, danmu.DanmuType(dmType), matcherParamList, actionChs)
 	mng.ruleMap[ruleId] = rule
+	log.Infoc(ctx, "%v", ruleId)
 	return nil
 }

@@ -49,27 +49,23 @@ type cmdType struct {
 	Info interface{} `json:"info"`
 }
 
-const (
-	UNKNOWN string = "UNKNOWN"
-	// 普通弹幕，好像表情包弹幕也在里面
-	DANMUMSG string = "DANMU_MSG"
-)
-
 type DanmuType int64
 
 func (d DanmuType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(DanmuType2Name[d])
 }
 
+// 每次新增/修改检查：弹幕解码、规则匹配、触发器数据
 const (
-	DanmuTypeUnknown  DanmuType = 0
+	DanmuTypeUnknown DanmuType = 0
+	// 普通弹幕，好像表情包弹幕也在里面
 	DanmuTypeDANMUMSG DanmuType = 1
 )
 
 var (
 	DanmuType2Cmd = map[DanmuType]string{
-		DanmuTypeUnknown:  UNKNOWN,
-		DanmuTypeDANMUMSG: DANMUMSG,
+		DanmuTypeUnknown:  "UNKNOWN",
+		DanmuTypeDANMUMSG: "DANMU_MSG",
 	}
 	DanmuType2Name = map[DanmuType]string{
 		DanmuTypeUnknown:  "未知弹幕类型",

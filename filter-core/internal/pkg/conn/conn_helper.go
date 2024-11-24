@@ -1,17 +1,18 @@
 package conn
 
 import (
+	"context"
 	"filter-core/internal/model/danmu"
 	"filter-core/util/errwarp"
-	"go.uber.org/zap"
+	"filter-core/util/log"
 	"sync"
 	"time"
 )
 
-type DmConnHelper struct {
+type dmConnHelper struct {
 	roomId int64
 	// 弹幕链接底层结构
-	dmConn *DmConn
+	dmConn *dmConn
 	// 处理dmConn锁
 	connMu sync.Mutex
 	// 接收弹幕消息的channel
@@ -21,44 +22,51 @@ type DmConnHelper struct {
 	// 搬运启停状态
 	isEnabled bool
 	// 主动关闭状态
-	// 为true后该对象不再可用，不再被引用
+	// 为true后该对象不再可用，需要解除引用
 	isClosed bool
 }
 
-func NewDmConnHelper(roomId int64, ruleChs []*danmu.DanmuChannel) *DmConnHelper {
-	helper := &DmConnHelper{
+func newDmConnHelper(ctx context.Context, roomId int64, ruleChs []*danmu.DanmuChannel) (helper *dmConnHelper, err error) {
+	conn, err := newDmConn(ctx, roomId)
+	if err != nil {
+		return nil, errwarp.Warp("new danmu conn fail", err)
+	}
+	helper = &dmConnHelper{
 		roomId:    roomId,
-		dmConn:    NewDmConn(roomId),
+		dmConn:    conn,
 		ruleChs:   ruleChs,
-		ruleMu:    sync.RWMutex{},
 		isEnabled: true,
 		isClosed:  false,
 	}
 	go helper.transport()
-	return helper
+	return helper, nil
 }
 
-func (helper *DmConnHelper) Enable() error {
+func (helper *dmConnHelper) enable(ctx context.Context) error {
 	helper.connMu.Lock()
 	defer helper.connMu.Unlock()
 	if helper.isEnabled {
-		zap.S().Warnf("duplicate enable dmConnHelper of roomId: %d", helper.roomId)
+		log.Warn("duplicate enable dmConnHelper of roomId: %d", helper.roomId)
 		return nil
 	}
-	helper.dmConn = NewDmConn(helper.roomId)
+	conn, err := newDmConn(ctx, helper.roomId)
+	if err != nil {
+		return errwarp.Warp("new danmu conn fail", err)
+	}
+	helper.dmConn = conn
 	helper.isEnabled = true
 	return nil
 }
 
-func (helper *DmConnHelper) Disable() error {
+func (helper *dmConnHelper) disable(ctx context.Context) error {
 	helper.connMu.Lock()
 	defer helper.connMu.Unlock()
 	if !helper.isEnabled {
-		zap.S().Warnf("duplicate disable dmConnHelper of roomId: %d", helper.roomId)
+		log.Warn("duplicate disable dmConnHelper of roomId: %d", helper.roomId)
 		return nil
 	}
 	helper.isEnabled = false
-	err := helper.dmConn.Close()
+	err := helper.dmConn.close()
 	helper.dmConn = nil
 	if err != nil {
 		return errwarp.Warp("close dmConn fail", err)
@@ -67,17 +75,17 @@ func (helper *DmConnHelper) Disable() error {
 }
 
 // 全量更新channel
-func (helper *DmConnHelper) UpdateRoomDanmu(ruleChs []*danmu.DanmuChannel) {
+func (helper *dmConnHelper) updateRoomDanmu(ctx context.Context, ruleChs []*danmu.DanmuChannel) {
 	helper.ruleMu.Lock()
 	defer helper.ruleMu.Unlock()
 	helper.ruleChs = ruleChs
 }
 
 // 搬运弹幕消息
-func (helper *DmConnHelper) transport() {
+func (helper *dmConnHelper) transport() {
 	for {
 		if helper.isClosed {
-			zap.S().Infof("dmConnHelper of room: %v is closed, stop transport", helper.roomId)
+			log.Info("dmConnHelper of room: %v is closed, stop transport", helper.roomId)
 			return
 		}
 		if !helper.isEnabled {
@@ -85,7 +93,7 @@ func (helper *DmConnHelper) transport() {
 			continue
 		}
 		helper.ruleMu.RLock()
-		dmList := helper.dmConn.Read()
+		dmList := helper.dmConn.read()
 		for _, dm := range dmList {
 			for _, ch := range helper.ruleChs {
 				ch.Send(dm)
@@ -95,13 +103,13 @@ func (helper *DmConnHelper) transport() {
 	}
 }
 
-func (helper *DmConnHelper) Close() error {
+func (helper *dmConnHelper) close() error {
 	helper.connMu.Lock()
 	defer helper.connMu.Unlock()
-	zap.S().Warnf("start close dmConnHelper of room: %v", helper.roomId)
+	log.Info("start close dmConnHelper of room: %v", helper.roomId)
 	helper.isClosed = true
 	helper.isEnabled = false
-	err := helper.dmConn.Close()
+	err := helper.dmConn.close()
 	helper.dmConn = nil
 	if err != nil {
 		return errwarp.Warp("close danmu conn helper fail", err)

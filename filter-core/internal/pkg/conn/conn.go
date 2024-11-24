@@ -1,22 +1,24 @@
 package conn
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"filter-core/config"
+	"filter-core/internal/dao"
 	"filter-core/internal/model/danmu"
 	"filter-core/util/errwarp"
+	"filter-core/util/log"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
-	"go.uber.org/zap"
 )
 
-type DmConn struct {
+type dmConn struct {
 	// 直播间信息
-	info *RoomInfo
+	info *dao.RoomInfo
 	// 直播间弹幕长链，自治、自愈
 	// 不为nil说明长链一定连接成功过
 	ws *websocket.Conn
@@ -32,11 +34,13 @@ type DmConn struct {
 	hbTicker *time.Ticker
 }
 
-func NewDmConn(roomId int64) *DmConn {
-	conn := &DmConn{
-		info: &RoomInfo{
-			RoomShortId: roomId,
-		},
+func newDmConn(ctx context.Context, roomId int64) (conn *dmConn, err error) {
+	info, err := dao.GetRoomInfo(ctx, roomId)
+	if err != nil {
+		return nil, errwarp.Warp("get room info fail", err)
+	}
+	conn = &dmConn{
+		info:        info,
 		ws:          nil,
 		isConnected: false,
 		isAuth:      false,
@@ -45,10 +49,10 @@ func NewDmConn(roomId int64) *DmConn {
 	}
 	go conn.selfHealing()
 	go conn.keepHeartbeat()
-	return conn
+	return conn, nil
 }
 
-func (conn *DmConn) connect() error {
+func (conn *dmConn) connect() error {
 	conn.mu.Lock()
 	defer conn.mu.Unlock()
 	// dial
@@ -57,10 +61,6 @@ func (conn *DmConn) connect() error {
 		conn.isAuth = false
 		_ = conn.ws.Close()
 		conn.ws = nil
-	}
-	err := conn.FetchRoomInfo()
-	if err != nil {
-		return errwarp.Warp("get room info fail", err)
 	}
 	dialer := &websocket.Dialer{}
 	ws, _, err := dialer.Dial(conn.info.WsUrl, nil)
@@ -102,7 +102,7 @@ func (conn *DmConn) connect() error {
 }
 
 // 由于读的频率远高于写的频率，所以靠读触发异常自愈
-func (conn *DmConn) selfHealing() {
+func (conn *dmConn) selfHealing() {
 	for {
 		// 长链不是被主动关闭，说明发生了某些错误需要尝试自愈
 		if conn.isClosed {
@@ -111,9 +111,9 @@ func (conn *DmConn) selfHealing() {
 		conn.hbTicker.Reset(365 * 24 * time.Hour)
 		err := conn.connect()
 		if err != nil {
-			zap.S().Errorf("dmConn connect error: %v", err)
+			log.Error("dmConn connect error: %v", err)
 			if !config.Conf.ConnConf.ForceAuth {
-				zap.S().Warn("connect to bili live room danmu fail, will reset auth setting and retry")
+				log.Warn("connect to bili live room danmu fail, will reset auth setting and retry")
 				if config.Conf.ConnConf.AuthUid != 0 {
 					config.Conf.ConnConf.AuthUid = 0
 				}
@@ -121,6 +121,7 @@ func (conn *DmConn) selfHealing() {
 					config.Conf.ConnConf.AuthCookie = ""
 				}
 			}
+			time.Sleep(500 * time.Millisecond)
 			continue
 		}
 		break
@@ -131,10 +132,10 @@ func (conn *DmConn) selfHealing() {
 	conn.hbTicker.Reset(config.Conf.ConnConf.HeartbeatInterval)
 }
 
-func (conn *DmConn) keepHeartbeat() {
+func (conn *dmConn) keepHeartbeat() {
 	for {
 		if conn.isClosed {
-			zap.S().Info("dmConn is closed, stop keep heartbeat")
+			log.Info("dmConn is closed, stop keep heartbeat")
 			conn.hbTicker.Stop()
 			conn.hbTicker = nil
 			return
@@ -142,7 +143,7 @@ func (conn *DmConn) keepHeartbeat() {
 		_ = <-conn.hbTicker.C
 		err := conn.heartbeat()
 		if err != nil {
-			zap.S().Errorf("keep heartbeat err: %v, try one more time", err)
+			log.Error("keep heartbeat err: %v, try one more time", err)
 			go func() {
 				_ = conn.heartbeat()
 			}()
@@ -150,15 +151,14 @@ func (conn *DmConn) keepHeartbeat() {
 	}
 }
 
-// 对一个直播间长链的读是串行的
-func (conn *DmConn) Read() []*danmu.Danmu {
+// 对一个直播间弹幕长链的读是串行的
+func (conn *dmConn) read() []*danmu.Danmu {
 	if conn.isConnected && conn.isAuth {
 		_, data, err := conn.ws.ReadMessage()
 		if err != nil {
 			conn.isConnected = false
 			conn.isAuth = false
 			go conn.selfHealing()
-			//zap.S().Errorf("read message error: %v, start self healing", err)
 			return nil
 		}
 		return danmu.DecodeDanmu(data)
@@ -166,7 +166,7 @@ func (conn *DmConn) Read() []*danmu.Danmu {
 	return nil
 }
 
-func (conn *DmConn) heartbeat() error {
+func (conn *dmConn) heartbeat() error {
 	if conn.isConnected && conn.isAuth {
 		header := danmu.NewDanmuHeader(danmu.ProtoVerAuthAndHeartBeat, danmu.OpCodeHeartBeat)
 		danmuData, err := danmu.EncodeDanmu(header, nil)
@@ -177,16 +177,15 @@ func (conn *DmConn) heartbeat() error {
 		if err != nil {
 			return errwarp.Warp("send heartbeat message fail", err)
 		}
-		//zap.S().Debugf("roomId: %v send heartbeat success", conn.info.RoomShortId)
 		return nil
 	}
 	return nil
 }
 
-func (conn *DmConn) Close() error {
+func (conn *dmConn) close() error {
 	conn.mu.Lock()
 	defer conn.mu.Unlock()
-	zap.S().Warnf("start close dmConn of room: %v", conn.info.RoomShortId)
+	log.Info("start close dmConn of room: %v", conn.info.RoomShortId)
 	conn.isClosed = true
 	conn.isConnected = false
 	conn.isAuth = false

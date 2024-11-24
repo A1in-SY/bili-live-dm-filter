@@ -1,6 +1,7 @@
 package rule
 
 import (
+	"context"
 	"filter-core/internal/model/danmu"
 	"filter-core/internal/pkg/rule/matcher"
 	"filter-core/util/log"
@@ -17,28 +18,24 @@ type Rule struct {
 	actionChs []*danmu.DanmuChannel
 }
 
-func NewRule(id, name string, dmType int64, matcherParamList []*matcher.MatcherParam, actionChs []*danmu.DanmuChannel) *Rule {
+func newRule(ctx context.Context, id, name string, dmType danmu.DanmuType, matcherParamList []*matcher.MatcherParam, actionChs []*danmu.DanmuChannel) *Rule {
 	rule := &Rule{
 		id:        id,
 		name:      name,
-		dmType:    danmu.DanmuType(dmType),
-		dmMatcher: matcher.NewDanmuMatcher(danmu.DanmuType(dmType), matcherParamList),
+		dmType:    dmType,
+		dmMatcher: matcher.NewDanmuMatcher(ctx, dmType, matcherParamList),
 		actionChs: actionChs,
 		dmChan:    danmu.NewDanmuChannel(),
 	}
-	go rule.Start()
+	go rule.start()
 	return rule
 }
 
-func (r *Rule) Start() {
+func (r *Rule) start() {
 	for {
 		dm := r.dmChan.Recv()
 		if dm.Type == r.dmType {
 			log.Infoc(dm.Context(), "recv danmu: %v", dm.String())
 		}
 	}
-}
-
-func (r *Rule) GetRuleDmChan() *danmu.DanmuChannel {
-	return r.dmChan
 }

@@ -102,7 +102,6 @@ func decodeCommandDanmuData(data []byte) (*Danmu, error) {
 		if !ok {
 			return nil, errwarp.Warp("decode DANMU_MSG fail", nil)
 		}
-
 		content, ok := dmMsgInfo[1].(string)
 		if !ok {
 			return nil, errwarp.Warp("decode DANMU_MSG fail", nil)

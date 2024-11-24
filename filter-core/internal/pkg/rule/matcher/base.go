@@ -1,7 +1,7 @@
 package matcher
 
 import (
-	"go.uber.org/zap"
+	"filter-core/util/log"
 	"strings"
 )
 
@@ -40,7 +40,7 @@ func (m *stringMatcher) isBaseMatch(a interface{}) bool {
 	case stringMatchModeRegex:
 		return true
 	default:
-		zap.S().Errorf("unsupported string match mode: %v", m.mode)
+		log.Error("unsupported string match mode: %v", m.mode)
 		return false
 	}
 }
@@ -81,7 +81,7 @@ func (m *int64Matcher) isBaseMatch(a interface{}) bool {
 	case int64MatchModeLessOrEqual:
 		return target <= m.value
 	default:
-		zap.S().Errorf("unsupported int64 match mode: %v", m.mode)
+		log.Error("unsupported int64 match mode: %v", m.mode)
 		return false
 	}
 }

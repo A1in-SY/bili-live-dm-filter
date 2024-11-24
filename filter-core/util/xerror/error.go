@@ -1,21 +1,25 @@
 package xerror
 
 type Error struct {
-	ECode   int32
-	Message string
+	code    int32
+	message string
 }
 
 func (e *Error) Error() string {
-	return e.Message
+	return e.message
 }
 
 func (e *Error) Code() int32 {
-	return e.ECode
+	return e.code
 }
 
 func New(code int32, msg string) *Error {
 	return &Error{
-		ECode:   code,
-		Message: msg,
+		code:    code,
+		message: msg,
 	}
 }
+
+var (
+	DefaultError = New(500, "default error")
+)

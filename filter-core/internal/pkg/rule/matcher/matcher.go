@@ -1,8 +1,13 @@
 package matcher
 
 import (
+	"context"
 	"filter-core/internal/model/danmu"
 )
+
+//type MatcherParam interface {
+//
+//}
 
 type MatcherParam struct {
 	Param string
@@ -28,10 +33,10 @@ type DanmuMatcher interface {
 	GetMatcherInfo() []*MatcherInfo
 }
 
-func NewDanmuMatcher(t danmu.DanmuType, paramList []*MatcherParam) DanmuMatcher {
+func NewDanmuMatcher(ctx context.Context, t danmu.DanmuType, paramList []*MatcherParam) DanmuMatcher {
 	switch t {
 	case danmu.DanmuTypeDANMUMSG:
-		return newDanmuMsgMatcher(paramList)
+		return newDanmuMsgMatcher(ctx, paramList)
 	default:
 		return nil
 	}

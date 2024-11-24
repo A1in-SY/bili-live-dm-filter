@@ -8,23 +8,6 @@ import (
 )
 
 func main() {
-	//cm := conn.NewDmConnManager()
-	//err := cm.AddRoomDanmu(22174141, nil)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//rm := rule.NewRuleManager()
-	//err = rm.AddRule("ceshi", 1, nil, nil)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//rList := rm.GetRuleList()
-	//err = cm.UpdateRoomDanmu(22174141, []*danmu.DanmuChannel{rList[0].GetRuleDmChan()})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//select {}
-
 	srv := server.NewHTTPServer()
 	err := srv.Start(context.Background())
 	if err != nil {
